@@ -1,1 +1,75 @@
+import numpy as np
+import pandas as pd
 
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import make_pipeline
+from sklearn.naive_bayes import GaussianNB
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+
+np.random.seed(42)
+
+n = 500
+
+income = np.random.randint(20000, 150000, n)
+loan_amount = np.random.randint(5000, 100000, n)
+credit_score = np.random.randint(300, 850, n)
+
+employment = np.random.choice(
+    ['Salaried', 'Business'], n
+)
+
+risk = (
+    credit_score * 0.08
+    + income / 3000
+    - loan_amount / 1800
+    + np.random.normal(0, 8, n)
+)
+
+loan_status = np.where(risk > 25, 'Approved', 'Rejected')
+
+df = pd.DataFrame({
+    'Income': income,
+    'LoanAmount': loan_amount,
+    'CreditScore': credit_score,
+    'Employment': employment,
+    'LoanStatus': loan_status
+})
+
+print("Dataset:")
+print(df.head())
+
+X = df.drop('LoanStatus', axis=1)
+y = df['LoanStatus']
+
+preprocessor = ColumnTransformer([
+    ('num', StandardScaler(), ['Income', 'LoanAmount', 'CreditScore']),
+    ('cat', OneHotEncoder(handle_unknown='ignore'), ['Employment'])
+])
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42, stratify=y
+)
+
+model = make_pipeline(preprocessor, GaussianNB())
+model.fit(X_train, y_train)
+
+pred = model.predict(X_test)
+
+print("\nAccuracy:", accuracy_score(y_test, pred))
+print("\nConfusion Matrix:")
+print(confusion_matrix(y_test, pred))
+
+print("\nClassification Report:")
+print(classification_report(y_test, pred))
+
+new_customer = pd.DataFrame({
+    'Income': [60000],
+    'LoanAmount': [25000],
+    'CreditScore': [720],
+    'Employment': ['Salaried']
+})
+
+print("\nNew Customer Loan Prediction:")
+print(model.predict(new_customer)[0])
