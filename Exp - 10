@@ -1,1 +1,36 @@
+import numpy as np
+import matplotlib.pyplot as plt
 
+from sklearn.mixture import GaussianMixture
+
+# Generate sample data
+np.random.seed(42)
+
+data1 = np.random.normal(loc=2, scale=0.5, size=100)
+data2 = np.random.normal(loc=7, scale=0.8, size=100)
+
+X = np.concatenate([data1, data2]).reshape(-1, 1)
+
+# EM algorithm using Gaussian Mixture Model
+model = GaussianMixture(
+    n_components=2,
+    random_state=42
+)
+
+model.fit(X)
+
+labels = model.predict(X)
+
+print("Cluster Means:")
+print(model.means_)
+
+print("\nCluster Variances:")
+print(model.covariances_)
+
+print("\nNumber of Iterations:", model.n_iter_)
+print("Converged:", model.converged_)
+
+plt.scatter(X[:, 0], np.zeros(len(X)), c=labels)
+plt.xlabel("Data Values")
+plt.title("Expectation-Maximization Clustering")
+plt.show()
