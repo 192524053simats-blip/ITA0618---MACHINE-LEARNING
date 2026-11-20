@@ -1,1 +1,66 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
 
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_absolute_error, r2_score
+
+np.random.seed(42)
+
+months = np.arange(1, 49)
+
+advertising = np.random.randint(10000, 50000, 48)
+
+sales = (
+    20000
+    + months * 1000
+    + advertising * 1.5
+    + np.random.normal(0, 4000, 48)
+)
+
+df = pd.DataFrame({
+    'Month': months,
+    'Advertising': advertising,
+    'Sales': sales
+})
+
+print("Sales Dataset:")
+print(df.head())
+
+X = df[['Month', 'Advertising']]
+y = df['Sales']
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+
+model = LinearRegression()
+model.fit(X_train, y_train)
+
+pred = model.predict(X_test)
+
+print("\nMean Absolute Error:", mean_absolute_error(y_test, pred))
+print("R2 Score:", r2_score(y_test, pred))
+
+# Predict sales for future months
+future = pd.DataFrame({
+    'Month': [49, 50, 51, 52],
+    'Advertising': [30000, 35000, 40000, 45000]
+})
+
+future_sales = model.predict(future)
+
+print("\nFuture Sales Prediction:")
+for month, value in zip(future['Month'], future_sales):
+    print("Month", month, "Predicted Sales =", round(value, 2))
+
+# Visualization
+plt.figure(figsize=(10, 5))
+plt.plot(df['Month'], df['Sales'], marker='o', label='Actual Sales')
+plt.xlabel("Month")
+plt.ylabel("Sales")
+plt.title("Future Sales Prediction")
+plt.legend()
+plt.grid(True)
+plt.show()
