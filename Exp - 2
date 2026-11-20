@@ -1,1 +1,92 @@
+ import pandas as pd
 
+data = [
+    ['Sunny','Warm','Normal','Strong','Warm','Same','Yes'],
+    ['Sunny','Warm','High','Strong','Warm','Same','Yes'],
+    ['Rainy','Cold','High','Strong','Warm','Change','No'],
+    ['Sunny','Warm','High','Strong','Cool','Change','Yes']
+]
+
+columns = ['Sky','Temperature','Humidity','Wind',
+           'Water','Forecast','EnjoySport']
+
+df = pd.DataFrame(data, columns=columns)
+
+# Save training data to CSV
+df.to_csv("training_data.csv", index=False)
+
+# Read CSV file
+df = pd.read_csv("training_data.csv")
+
+print("Training Data:")
+print(df)
+
+X = df.iloc[:, :-1].values
+y = df.iloc[:, -1].values
+
+n = X.shape[1]
+
+S = ['Ø'] * n
+G = [['?'] * n]
+
+def covers(h, x):
+    return all(a == '?' or a == b for a, b in zip(h, x))
+
+def more_general(h1, h2):
+    return all(a == '?' or a == b for a, b in zip(h1, h2))
+
+for x, label in zip(X, y):
+
+    if label == 'Yes':
+
+        G = [g for g in G if covers(g, x)]
+
+        for i in range(n):
+            if S[i] == 'Ø':
+                S[i] = x[i]
+            elif S[i] != x[i]:
+                S[i] = '?'
+
+    else:
+
+        new_G = []
+        domains = [
+            df.iloc[:, i].unique().tolist()
+            for i in range(n)
+        ]
+
+        for g in G:
+
+            if covers(g, x):
+
+                for i in range(n):
+
+                    if g[i] == '?':
+                        for value in domains[i]:
+
+                            if value != x[i] and (
+                                S[i] == 'Ø' or
+                                S[i] == '?' or
+                                S[i] == value
+                            ):
+                                h = g.copy()
+                                h[i] = value
+
+                                if all(
+                                    covers(h, xp)
+                                    for xp, yp in zip(X, y)
+                                    if yp == 'Yes'
+                                ):
+                                    new_G.append(h)
+
+            else:
+                new_G.append(g)
+
+        G = new_G
+
+print("\nSpecific Boundary S:")
+print(S)
+
+print("\nGeneral Boundary G:")
+for h in G:
+    print(h)
