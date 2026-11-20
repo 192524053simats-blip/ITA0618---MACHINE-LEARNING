@@ -1,1 +1,71 @@
+import numpy as np
+import pandas as pd
 
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+
+np.random.seed(42)
+
+n = 500
+
+ram = np.random.choice([512, 1024, 2048, 4096, 6144, 8192], n)
+battery = np.random.randint(2000, 7000, n)
+camera = np.random.randint(5, 108, n)
+storage = np.random.choice([16, 32, 64, 128, 256, 512], n)
+screen = np.random.uniform(4.5, 7.0, n)
+
+value = (
+    ram * 0.04
+    + battery * 0.01
+    + camera * 0.5
+    + storage * 0.8
+    + screen * 10
+)
+
+price_range = pd.qcut(
+    value + np.random.normal(0, 10, n),
+    4,
+    labels=[0, 1, 2, 3]
+).astype(int)
+
+df = pd.DataFrame({
+    'RAM': ram,
+    'Battery': battery,
+    'Camera': camera,
+    'Storage': storage,
+    'Screen': screen,
+    'PriceRange': price_range
+})
+
+print(df.head())
+
+X = df.drop('PriceRange', axis=1)
+y = df['PriceRange']
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42, stratify=y
+)
+
+model = RandomForestClassifier(n_estimators=100, random_state=42)
+model.fit(X_train, y_train)
+
+pred = model.predict(X_test)
+
+print("\nAccuracy:", accuracy_score(y_test, pred))
+print("\nConfusion Matrix:")
+print(confusion_matrix(y_test, pred))
+
+print("\nClassification Report:")
+print(classification_report(y_test, pred))
+
+new_mobile = pd.DataFrame({
+    'RAM': [4096],
+    'Battery': [5000],
+    'Camera': [48],
+    'Storage': [128],
+    'Screen': [6.5]
+})
+
+print("\nPredicted Price Range:")
+print(model.predict(new_mobile)[0])
