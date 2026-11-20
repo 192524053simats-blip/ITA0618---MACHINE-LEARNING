@@ -1,1 +1,28 @@
+import pandas as pd
 
+data = [
+    ['Sunny', 'Warm', 'Normal', 'Strong', 'Warm', 'Same', 'Yes'],
+    ['Sunny', 'Warm', 'High', 'Strong', 'Warm', 'Same', 'Yes'],
+    ['Rainy', 'Cold', 'High', 'Strong', 'Warm', 'Change', 'No'],
+    ['Sunny', 'Warm', 'High', 'Strong', 'Cool', 'Change', 'Yes']
+]
+
+columns = ['Sky', 'Temperature', 'Humidity', 'Wind',
+           'Water', 'Forecast', 'EnjoySport']
+
+df = pd.DataFrame(data, columns=columns)
+print("Training Data:")
+print(df)
+
+hypothesis = ['Ø'] * 6
+
+for row in data:
+    if row[-1] == 'Yes':
+        for i in range(6):
+            if hypothesis[i] == 'Ø':
+                hypothesis[i] = row[i]
+            elif hypothesis[i] != row[i]:
+                hypothesis[i] = '?'
+
+print("\nFinal Hypothesis:")
+print(hypothesis)
